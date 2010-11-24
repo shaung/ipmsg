@@ -1,0 +1,23 @@
+--------------------
+About
+--------------------
+Pyipmsg is an IP Messenger(http://www.ipmsg.org) alternative for Gnome, written in python.
+
+--------------------
+Requirements
+--------------------
+Dependencies:
+ * python-notify
+ * python-keybinder
+ * PyCrypto
+ * M2Crypto(will be removed in the future)
+
+Notice: Only tested with Ubuntu 10.04 / Python 2.6 / gtk 2.20
+
+--------------------
+Installation
+--------------------
+
+sudo python setup.py install
+
+Then add "pyipmsg" to the panel.
