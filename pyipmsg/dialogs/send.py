@@ -598,7 +598,11 @@ class SendDlg(ConfigableDialog):
         chbox.show() 
         contact_box = gtk.VBox(False, 2)
         contact_box.pack_start(chbox, False, False, 2)
-        contact_box.pack_end(self.cl, True, True, 0)
+        sw = gtk.ScrolledWindow()
+        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sw.show()
+        sw.add_with_viewport(self.cl)
+        contact_box.pack_end(sw, True, True, 0)
         contact_box.show()
 
         hbox = gtk.HBox(False, 1)
