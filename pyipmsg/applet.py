@@ -154,6 +154,7 @@ class Gui:
                 self.menubar.deselect()
                 self.menubar.grab_remove()
                 gtk.gdk.keyboard_ungrab()
+                gtk.gdk.pointer_ungrab()
 
             # FIXME: The menu selection works but somehow weird. I'm not sure i'm doing it right.
             def show_menu_cb():
