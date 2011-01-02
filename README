@@ -21,3 +21,17 @@ Installation
 sudo python setup.py install
 
 Then add "pyipmsg" to the panel.
+
+--------------------
+Known issues
+--------------------
+The M2Crypto package on Pypi seems not working properly.
+If you encounterd errors while installing M2Crypto using easy_install,
+try download the package and manually install it instead.
+Besides, it requires SWIG and OpenSSL being installed.
+Hopefully the dependency to M2Crypto will be removed in the next version of Pyipmsg.
+
+--------------------
+Tips
+--------------------
+You can use <Meta>I to activate the main menu.
