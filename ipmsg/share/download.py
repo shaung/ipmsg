@@ -99,6 +99,8 @@ class FileDownloader:
             self.download_all(atts, base_dir)
         except DownloadError:
             self.notify_error()
+        except:
+            self.notify_error()
         finally:
             self.close_tcpsock()
 
@@ -144,12 +146,14 @@ class FileDownloader:
                 if depth == 0: break
  
     def _get_file_data(self, fname, size, to_retry=False):
+        logger.debug('size:%s' % size)
         self.update_progress(1, 0)
         self.total_size += size
-        if size > 0x4000: # over 16kb
-            self._get_file_data_fast(fname, size, to_retry)
-        else:
+        # FIXME: do not use mmap
+        if True:
             self._get_file_data_slow(fname, size, to_retry)
+        else:
+            self._get_file_data_mmap(fname, size, to_retry)
 
     def _get_file_data_slow(self, fname, size, to_retry):
         f = open(fname, 'w+b')
@@ -158,17 +162,41 @@ class FileDownloader:
             self.update_progress(0, 0)
             return
 
-        sz = size
-        s = ''
+        block_sz = 0x4000000 # 40mb block
+        sz = size # bytes remained
+        buf = ''
         while sz > 0:
-            s += self.sock.recv(sz)
-            sz = size - len(s)
+            try:
+                s = self.sock.recv(min(block_sz, sz))
+                self.update_progress(0, len(s))
+                sz -= len(s)
+                buf += s
+                if(len(buf) >= block_sz):
+                    f.write(buf)
+                    f.flush()
+                    buf = ''
+            except socket.error as e:
+                logger.debug('socket error, retrying')
+                if to_retry:
+                    to_retry = False
+                    self.request_file(self.msg, size - sz)
+                    sz = size
+                    buf = ''
+                else:
+                    logger.debug('socket error, give up')
+                    logger.debug('oops: %s' % str(e))
+                    raise
+            except Exception as e:
+                logger.debug('oops: %s' % str(e))
+                raise
 
-        f.write(s)
+        f.write(buf)
         f.close()
-        self.update_progress(0, size)
+        self.update_progress(0, len(buf))
 
-    def _get_file_data_fast(self, fname, size, to_retry = False):
+    # FIXME: mmap does not work for files larger than 2GB on 32bit systems,
+    #        because the offset parameter must be signed integer.
+    def _get_file_data_mmap(self, fname, size, to_retry = False):
         f = open(fname, 'w+b')
 
         if size == 0:
@@ -191,7 +219,7 @@ class FileDownloader:
             try:
                 s = self.sock.recv(min(size - recved, block_sz))
                 if len(s) == 0:
-                    raise
+                    raise DownloadError, 'nothing recieved'
                 mp[recved - offset:recved - offset + len(s)] = s
                 recved += len(s)
                 self.update_progress(0, len(s))
@@ -199,6 +227,7 @@ class FileDownloader:
                     offset = recved
                     mp.flush()
                     mp.close()
+                    logger.debug('map remap size(%s) offset(%s)' % (size, offset))
                     mp = mmap.mmap(f.fileno(), min(size - offset, max_map_sz), flags=mmap.MAP_SHARED, prot=mmap.PROT_WRITE, offset=offset)
             except socket.error:
                 logger.debug('socket error, retrying')
@@ -209,8 +238,8 @@ class FileDownloader:
                     logger.debug('socket error, give up')
                     raise
                     break
-            except:
-                logger.debug('unknown error')
+            except Exception as e:
+                logger.debug('oops:%s' % str(e))
                 raise
                 break
 
