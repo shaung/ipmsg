@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding = utf-8 -*-
+# -*- coding: utf-8 -*-
 
 import sys, logging, logging.config
 
@@ -9,6 +9,15 @@ if __name__ == "__main__":
         filename="/tmp/ipmsg.log",
         filemode = 'w',
     )
+
+    import os, os.path
+    userdir = os.path.expanduser('~/.pyipmsg')
+    # make sure the user dir exists
+    try:
+        os.mkdir(userdir)
+    except OSError:
+        if not os.path.exists(userdir):
+            raise
 
     from pyipmsg import applet
     applet.main()

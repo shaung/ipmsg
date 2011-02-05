@@ -17,6 +17,9 @@ from pyipmsg.dialogs.configable import ConfigableDialog
 from pyipmsg.conf.settings import SettingsDialog, GConfProperty
 from pyipmsg.conf.widgets import GConfFontButton, GConfColorButton
 
+import logging
+logger = logging.getLogger('LogViewer')
+
 class ContactList(gtk.TreeView):
     def __init__(self):
         ts = gtk.ListStore(str, str)

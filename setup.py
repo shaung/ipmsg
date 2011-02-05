@@ -1,11 +1,27 @@
-#!/usr/bin/python
-# vim:fileencoding=utf-8
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os.path, glob
 
 from setuptools import setup
 
 __VERSION__ = '0.0.1.0'
+
+def _expand(dest, src):
+    import os, os.path
+    dest = os.path.normpath(dest)
+    rslt = [(dest, os.path.join(src, '*.*'))]
+    base = os.path.abspath(src)
+    for root, dirs, files in os.walk(src):
+        for d in dirs:
+            rel = os.path.relpath(root, base)
+            destpath = os.path.normpath(os.path.join(dest, rel, d))
+            srcpath = os.path.normpath(os.path.join(root, d, '*.*'))
+            rslt.append((destpath, srcpath))
+    return rslt
+
+def glob_dir(dest_dir, src_dir):
+    return [(dest, glob.glob(src)) for dest, src in _expand(dest_dir, src_dir)]
 
 params = {
     'name': 'pyipmsg',
@@ -29,16 +45,8 @@ params = {
         'pyipmsg.widgets',
     ],
     'data_files': [
-        ('/usr/share/pyipmsg/icons', glob.glob('data/icons/*.png')),
-        ('/usr/share/pyipmsg/icons/app', glob.glob('data/icons/app/*')),
-        ('/usr/share/pyipmsg/icons/menu', glob.glob('data/icons/menu/*')),
-        ('/usr/share/pyipmsg/icons/misc', glob.glob('data/icons/misc/*')),
-        ('/usr/share/pyipmsg/icons/toolbar', glob.glob('data/icons/toolbar/*')),
-        ('/usr/share/pyipmsg/icons/notify', glob.glob('data/icons/notify/*')),
-        ('/usr/share/pyipmsg/icons/window', glob.glob('data/icons/window/*')),
-        (os.path.expanduser('~/.pyipmsg'), ['data/global.conf']),
         ('/usr/lib/bonobo/servers', ['data/GNOME_Panel_Pyipmsg_Factory.server']),
-    ],
+    ] + glob_dir('/usr/share/pyipmsg/icons', 'data/icons'),
     'license': 'GPLv3',
     'download_url': '',
     'install_requires': [
