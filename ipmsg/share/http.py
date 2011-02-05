@@ -11,19 +11,19 @@ from ipmsg.util import *
 class WebShareServer:
     def __init__(self, path=None):
         self.shares= {}
-        self.path = path or os.path.expanduser('~/.pyipmsg/webshare')
+        self.path = path or '/tmp/pyipmsg/webshare'
 
     def _gen_webshare(self, attach):
         root = os.path.join(self.path, str(time.time()))
-        os.mkdir(root)
+        os.makedirs(root)
         page = os.path.join(root, 'index.html')
         f = file(page, 'wb')
-        f.write('-------- share files --------\n')
+        f.write('-------- shared files --------\n')
         f.write('<br>' * 3)
         for att in attach:
             fname = os.path.basename(att)
             ln = os.path.join(root, fname)
-            os.link(att, ln)
+            os.symlink(att, ln)
             f.write('<a href="%s">%s</a><br>\n' % (fname, fname))
         f.close()
         return root

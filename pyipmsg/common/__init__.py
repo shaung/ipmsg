@@ -19,6 +19,6 @@ import os.path
 
 INSTALL_ROOT_DIR = '/usr/share/pyipmsg/'
 CONF_PATH = os.path.expanduser('~/.pyipmsg/ipmsg.conf')
-WEB_SHARE_DIR = os.path.expanduser('~/.pyipmsg/webshare/')
+WEB_SHARE_DIR = '/tmp/pyipmsg/webshare/'
 DEBUG_LOG = os.path.expanduser('~/.pyipmsg/debug.log')
 
