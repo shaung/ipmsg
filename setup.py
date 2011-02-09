@@ -31,7 +31,7 @@ params = {
     'author_email': 'shaun.geng@gmail.com',
     'url': 'http://github.com/shaung/pyipmsg/',
     'scripts': [
-        'pyipmsg-applet.py',
+        'bin/pyipmsg-applet.py',
     ],
     'packages':[
         'ipmsg',
