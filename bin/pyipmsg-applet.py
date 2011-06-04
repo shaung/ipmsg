@@ -3,6 +3,13 @@
 
 import sys, logging, logging.config
 
+def make_sure_exists(dirpath):
+    try:
+        os.mkdir(dirpath)
+    except OSError:
+        if not os.path.exists(dirpath):
+            raise
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG,
         format="%(asctime)s %(levelname)s %(message)s",
@@ -10,14 +17,11 @@ if __name__ == "__main__":
         filemode = 'w',
     )
 
-    import os, os.path
+    import os
     userdir = os.path.expanduser('~/.pyipmsg')
-    # make sure the user dir exists
-    try:
-        os.mkdir(userdir)
-    except OSError:
-        if not os.path.exists(userdir):
-            raise
+    make_sure_exists(userdir)
+    make_sure_exists(os.path.join(userdir, 'rsa'))
+    make_sure_exists(os.path.join(userdir, 'webshare'))
 
     from pyipmsg import applet
     applet.main()
