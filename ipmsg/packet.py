@@ -41,7 +41,7 @@ class Packet:
         msgstr = ''
         self.ver, self.cntr, self.name, self.host, self.tag, msgstr = re.split(':', raw, 5)
         msgstr = re.sub('\0+', '\0', msgstr)
-	data = list(re.split('\0', msgstr))
+        data = list(re.split('\0', msgstr))
 
         self.msg, self.ext = map(''.join, (data[:1], data[1:]))
         self.ext, self.name = self.to_unicode(self.ext, self.name)

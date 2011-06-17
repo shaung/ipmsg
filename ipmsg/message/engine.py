@@ -19,7 +19,7 @@ class Engine:
 
     def __init__(self):
         self.notify_callback = None
-	self.nics = {}
+        self.nics = {}
         self.ip = ''
         self.port = c.IPMSG_DEFAULT_PORT
         self._update()
