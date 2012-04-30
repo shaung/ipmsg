@@ -118,4 +118,4 @@ class UploadManager:
             self.share_list.remove(args)
 
 upload_manager = UploadManager()
-webshare_manager = WebShareServer(path='/tmp/pyipmsg/webshare')
+webshare_manager = WebShareServer(path='/tmp/ipmsg/webshare')

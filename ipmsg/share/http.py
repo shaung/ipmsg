@@ -11,7 +11,7 @@ from ipmsg.util import *
 class WebShareServer:
     def __init__(self, path=None):
         self.shares= {}
-        self.path = path or '/tmp/pyipmsg/webshare'
+        self.path = path or '/tmp/ipmsg/webshare'
 
     def _gen_webshare(self, attach):
         root = os.path.join(self.path, str(time.time()))

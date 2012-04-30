@@ -44,16 +44,45 @@ class Packet:
         data = list(re.split('\0', msgstr))
 
         self.msg, self.ext = map(''.join, (data[:1], data[1:]))
-        self.ext, self.name = self.to_unicode(self.ext, self.name)
+        self.raw_msg = self.msg
+        # since v3 there is extended utf8 trailer for broadcast packets.
+        # that trailer is ensured to be utf8 so we need to ignore it when converting to unicode
+        if self.is_br() or self.is_nop():
+            uinfo = {
+                'UN': self.name,
+                'HN': self.host,
+                'NN': self.to_unicode(self.msg),
+                'GN': '',
+            }
+            try:
+                uinfo['GN'], utf8ext = re.split('\n', self.ext, 1)
+            except ValueError:
+                log.debug('extra trailer not found')
+                self.ext, self.name = self.to_unicode(self.ext, self.name)
+                uinfo['GN'] = self.ext
+            else:
+                self.ext = self.to_unicode(uinfo['GN'])
+                log.debug('extra trailer: %s' % utf8ext)
+                for entry in utf8ext.split('\n'):
+                    tag, name = entry.split(':')
+                    log.debug(' %s: %s' % (tag, name))
+                    if tag in uinfo:
+                        uinfo[tag] = name
+            self.name = uinfo.get('UN')
+            self.host = uinfo.get('HN')
+            self.msg  = uinfo.get('NN')
+            self.group = uinfo.get('GN')
+        else:
+            if not (self.is_type(c.IPMSG_SENDMSG) and self.test(c.IPMSG_ENCRYPTOPT)):
+                self.msg = self.to_unicode(self.msg)
+            self.group = self.ext = self.to_unicode(self.ext)
+            self.name = self.to_unicode(self.name)
+
+        self.group = self.group.replace('\n', '')
 
         if self.is_type(c.IPMSG_SENDMSG) and self.test(c.IPMSG_FILEATTACHOPT):
             self.atts = [Attachment(x, self.cntr) for x in re.split('\x07', self.ext) if x]
 
-        if self.is_type(c.IPMSG_SENDMSG) and self.test(c.IPMSG_ENCRYPTOPT):
-            return
-
-        self.raw_msg = self.msg
-        self.msg = self.to_unicode(self.msg)
         log.debug('msg=' + self.msg)
         log.debug('ext=' + self.ext)
 
@@ -62,7 +91,7 @@ class Packet:
             contact = Contact(name=self.name, group='', host=self.host, addr=self.addr, login=self.name)
             contact.temporary = True
         else:
-            contact = Contact(name=self.msg, group=self.ext, host=self.host, addr=self.addr, login=self.name)
+            contact = Contact(name=self.msg, group=self.group, host=self.host, addr=self.addr, login=self.name)
             contact.encrypt_opt = self.test(c.IPMSG_ENCRYPTOPT)
         return contact
 
@@ -114,6 +143,9 @@ class Packet:
     def dummy(self):
         return self.tag in ('0', '')
 
+    def is_nop(self):
+        return self.is_type(c.IPMSG_NOOPERATION)
+
     def has_check_option(self):
         return (self.is_type(c.IPMSG_SENDMSG) and
                 self.test(c.IPMSG_SENDCHECKOPT) and
@@ -121,6 +153,9 @@ class Packet:
                 not self.is_autoret()
                ) or \
                (self.is_type(c.IPMSG_READMSG) and self.test(c.IPMSG_READCHECKOPT))
+
+    def is_br(self):
+        return self.type_in(c.IPMSG_BR_ENTRY, c.IPMSG_BR_EXIT, c.IPMSG_BR_ABSENCE)
 
     def is_status_notify(self):
         return self.type_in(c.IPMSG_BR_ENTRY, c.IPMSG_ANSENTRY, c.IPMSG_BR_ABSENCE)

@@ -24,29 +24,18 @@ def glob_dir(dest_dir, src_dir):
     return [(dest, glob.glob(src)) for dest, src in _expand(dest_dir, src_dir)]
 
 params = {
-    'name': 'pyipmsg',
+    'name': 'ipmsg',
     'version': __VERSION__,
-    'description': 'An ipmsg alternative for Gnome, written in python',
+    'description': 'An ipmsg alternative for linux, written in python',
     'author': 'Shaung',
     'author_email': 'shaun.geng@gmail.com',
-    'url': 'http://github.com/shaung/pyipmsg/',
-    'scripts': [
-        'bin/pyipmsg-applet.py',
-    ],
+    'url': 'http://github.com/shaung/ipmsg/',
     'packages':[
         'ipmsg',
         'ipmsg.message',
         'ipmsg.crypto',
         'ipmsg.share',
-        'pyipmsg',
-        'pyipmsg.common',
-        'pyipmsg.conf',
-        'pyipmsg.dialogs',
-        'pyipmsg.widgets',
     ],
-    'data_files': [
-        ('/usr/lib/bonobo/servers', ['data/GNOME_Panel_Pyipmsg_Factory.server']),
-    ] + glob_dir('/usr/share/pyipmsg/icons', 'data/icons'),
     'license': 'GPLv3',
     'download_url': '',
     'install_requires': [

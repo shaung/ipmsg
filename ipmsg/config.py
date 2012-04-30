@@ -112,7 +112,7 @@ class Settings:
                 ('log_use_utf8', True),
                 ('log_logon_name', True),
                 ('log_ip_address', True),
-                ('log_file_path', os.path.expanduser('~/.pyipmsg/ipmsg.log')),
+                ('log_file_path', os.path.expanduser('~/.ipmsg/ipmsg.log')),
             ],
             'message': [
                 ('send_timeout', 10),
@@ -153,6 +153,12 @@ class Settings:
 
     def __setitem__(self, key, value):
         self.values[key] = value
+
+    def from_file(self, fpath):
+        pass
+
+    def from_dict(self, d):
+        pass
 
     def load(self, fpath):
         self.parser.read(fpath)

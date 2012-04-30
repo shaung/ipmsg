@@ -61,11 +61,14 @@ class Engine:
         return self.contacts
 
     def get_contact(self, addr):
-        return self.contacts.has_key(addr) and self.contacts[addr] or None
+        return self.contacts.get(addr, None)
 
     def get_or_create_contact(self, p):
-        if p.ext and p.ext not in settings['group_list']:
-            settings['group_list'].append(p.ext)
+        for k in settings['group_list']:
+            logger.debug('orginal group:-%s-' % k)
+        if p.group and p.group not in settings['group_list']:
+            logger.debug('new group:-%s-' % p.group)
+            settings['group_list'].append(p.group)
         contact = self.get_contact(p.addr)
         if not contact:
             contact = p.extract_contact()
@@ -77,7 +80,7 @@ class Engine:
         if p.is_status_notify():
             if contact.has_left_for() > 0:
                 self.request_version(p.addr)
-            contact.name, contact.group = p.msg, p.ext
+            contact.name, contact.group = p.msg, p.group
             if p.test(c.IPMSG_ABSENCEOPT):
                 contact.afk()
             else:

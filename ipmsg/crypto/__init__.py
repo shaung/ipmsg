@@ -153,7 +153,7 @@ class Crypto:
     def _init_rsa_key(self):
         self.encrypt_capa = c.IPMSG_RSA_512 | c.IPMSG_RSA_1024 | c.IPMSG_BLOWFISH_128
         # FIXME: hard-coding path
-        self.key_file = lambda x : os.path.expanduser('~/.pyipmsg/rsa/rsa.%s.pem' % str(x))
+        self.key_file = lambda x : os.path.expanduser('~/.ipmsg/rsa/rsa.%s.pem' % str(x))
         self._load_key()
 
     def _load_key(self):
