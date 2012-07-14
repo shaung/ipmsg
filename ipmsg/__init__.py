@@ -123,3 +123,10 @@ def read_notice(*args):
 def delete_notice(*args):
     return _handler.delete_notice(*args)
 
+basedir = os.path.expanduser('~/.ipmsg/')
+for path in ('', 'rsa', 'webshare'):
+    try:
+        os.mkdirs(os.path.join(basedir, path))
+    except:
+        pass
+
