@@ -4,6 +4,14 @@ __all__ = ['config', 'consts', 'crypto', 'engine', 'message', 'history', 'contac
 
 import os
 
+basedir = os.path.expanduser('~/.ipmsg/')
+for path in ('', 'rsa', 'webshare'):
+    try:
+        os.makedirs(os.path.join(basedir, path))
+    except:
+        pass
+
+
 import util
 from util import AttachmentError
 import consts as c
@@ -123,10 +131,4 @@ def read_notice(*args):
 def delete_notice(*args):
     return _handler.delete_notice(*args)
 
-basedir = os.path.expanduser('~/.ipmsg/')
-for path in ('', 'rsa', 'webshare'):
-    try:
-        os.mkdirs(os.path.join(basedir, path))
-    except:
-        pass
 
