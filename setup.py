@@ -21,7 +21,7 @@ params = {
         'ipmsg.share',
     ],
     'license': 'BSD',
-    'download_url': '',
+    'download_url': 'https://github.com/shaung/ipmsg/tarball/master',
     'zip_safe': False,
     'classifiers': [
         "Development Status :: 3 - Alpha",
