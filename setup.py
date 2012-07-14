@@ -7,22 +7,6 @@ from setuptools import setup
 
 __VERSION__ = '0.0.1.0'
 
-def _expand(dest, src):
-    import os, os.path
-    dest = os.path.normpath(dest)
-    rslt = [(dest, os.path.join(src, '*.*'))]
-    base = os.path.abspath(src)
-    for root, dirs, files in os.walk(src):
-        for d in dirs:
-            rel = os.path.relpath(root, base)
-            destpath = os.path.normpath(os.path.join(dest, rel, d))
-            srcpath = os.path.normpath(os.path.join(root, d, '*.*'))
-            rslt.append((destpath, srcpath))
-    return rslt
-
-def glob_dir(dest_dir, src_dir):
-    return [(dest, glob.glob(src)) for dest, src in _expand(dest_dir, src_dir)]
-
 params = {
     'name': 'ipmsg',
     'version': __VERSION__,
@@ -36,12 +20,15 @@ params = {
         'ipmsg.crypto',
         'ipmsg.share',
     ],
-    'license': 'GPLv3',
+    'license': 'BSD',
     'download_url': '',
-    'install_requires': [
-        'M2Crypto',
-        'PyCrypto',
+    'zip_safe': False,
+    'classifiers': [
+        "Development Status :: 3 - Alpha",
+        "Topic :: Utilities",
+        "License :: OSI Approved :: BSD License",
     ],
+    'install_requires': [line for line in open('requirements.txt')],
 }
 
 setup(**params)
