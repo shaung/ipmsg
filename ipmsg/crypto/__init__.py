@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
+import logging, traceback
+
 import re, binascii, os.path
-from rsa import RSAKey
+from _rsa import RSAKey
 from cipher import Cipher
 from ipmsg import consts as c
 from ipmsg.util import shex
+
+logger = logging.getLogger(__file__)
 
 class CryptoError(Exception):
     pass
@@ -54,61 +58,88 @@ class Crypto:
 
     def get_pubkey_raw(self, addr):
         capa = self.contact_capa[addr] & self.encrypt_capa
+        logger.debug('try get_pubkey_raw: capa=%s' % (capa))
         rsa_tag, cipher_tag = self.get_methods(shex(capa))
+        logger.debug('try get_pubkey_raw: rsa_tag=%s' % (rsa_tag))
         if not rsa_tag:
             capa = self.encrypt_capa
             rsa_tag = c.IPMSG_RSA_1024
+        logger.debug('try get_pubkey_raw: %s' % (repr(addr)))
         raw = shex(capa) + ':' + self.get_pubkey_hex(rsa_tag)
+        logger.debug('get_pubkey_raw: %s' % raw)
         return raw
 
     def get_pubkey_hex(self, rsa_tag):
+        logger.debug('try get_pubkey_hex: %s' % rsa_tag)
         key = self.key[RSALEN[rsa_tag]]
+        logger.debug('key: %s' % key)
+        logger.debug('get pubkey tuple')
         e, n = key.get_pubkey_tuple()
-        key_hex = binascii.b2a_hex(e[4:])[1:] + '-' + binascii.b2a_hex(n[5:])
+        logger.debug('key: e=%s, n=%s' % (e, n))
+        e = shex(e)
+        n = shex(n)
+        e = binascii.a2b_hex('0'*(len(e)%2) + e)
+        n = binascii.a2b_hex('0'*(len(n)%2) + n)
+        logger.debug('key: e=%s, n=%s' % (e, n))
+        key_hex = binascii.b2a_hex(e)[1:] + '-' + binascii.b2a_hex(n)
+        logger.debug('got key_hex: %s' % (key_hex))
         return key_hex
 
     def memo(self, addr, capa, key=None):
         self.contact_capa[addr] = int(capa, 16)
+        logger.debug('contact %s: capa=%s, key=%s' % (repr(addr), capa, key))
         if key:
             # key = EE-NNNN....
             e, n = re.split('-', key, 1)
             if len(e) % 2 != 0: e = '0' + e
-            e, n = map(binascii.a2b_hex, (e, n))
-            l = len(n) * 8
+            l = len(n) * 4
             if l not in RSALEN.values():
                 return
-            e = '\x00\x00\x00\x03' + e
-            n = '\x00\x00\x00' + binascii.a2b_hex(shex(len(n) + 1)) +'\x00' + n
+            e = int(e, 16)
+            n = int(n, 16)
+            logger.debug('contact %s: e=%s, n=%s' % (repr(addr), e, n))
             k = RSAKey(size=l, tuple=(e, n))
             if addr not in self.contact_keys:
                 self.contact_keys[addr] = {}
+            logger.debug('memorized %s: l=%s' % (repr(addr), l))
             self.contact_keys[addr][l] = k
+            logger.debug('memorized %s: k=%s' % (repr(addr), self.contact_keys[addr][l]))
 
     def encrypt(self, msg, addr):
+        logger.debug('before encryption')
         if not self.knows(addr):
+            logger.debug('dont know who')
             return False, None
 
+        logger.debug('checking methods')
         methods = self.get_methods(shex(self.contact_capa[addr]))
         if None in methods:
+            logger.debug('dont have methods')
             return False, None
 
         rsa_tag, cipher_tag = methods
+        logger.debug('methods checked: rsa_tag=%s, cipher_tag=%s' % (rsa_tag, cipher_tag))
 
         try:
             rsa_key = self.contact_keys[addr][RSALEN[rsa_tag]]
         except KeyError:
+            logger.debug('does not have public key for %s, %s' % (repr(addr), RSALEN[rsa_tag]))
             return False, None
 
+        logger.debug('got rsa key %s' % (RSALEN[rsa_tag]))
         cipher = Cipher(*CIPHERS[cipher_tag])
+        logger.debug('ready to encypt cipher')
         enc_msg = cipher.encrypt(msg)
         enc_ses_key = rsa_key.encrypt(cipher.session_key)
 
         capa = shex(rsa_tag | cipher_tag)
         enc_raw = capa + ':' + binascii.b2a_hex(enc_ses_key) + ':' + binascii.b2a_hex(enc_msg)
 
+        logger.debug('encryption ok')
         return True, enc_raw
 
     def get_methods(self, hex_capa):
+        logger.debug('get encryption methods: capa=%s' % hex_capa)
         enc_capa = int(hex_capa, 16)
 
         rsa_tag = None
@@ -135,6 +166,7 @@ class Crypto:
 
         rsa_tag, cipher_tag = self.get_methods(enc_capa)
         if not rsa_tag or not cipher_tag:
+            logger.debug('no method specified: %s, %s' % (rsa_tag, cipher_tag))
             return False, None
 
         try:
@@ -142,6 +174,7 @@ class Crypto:
             enc_session_key = binascii.a2b_hex(enc_session_key)
             session_key = key.decrypt(enc_session_key)
         except:
+            logger.debug(traceback.format_exc())
             return False, None
 
         cipher = Cipher(*CIPHERS[cipher_tag], session_key=session_key)

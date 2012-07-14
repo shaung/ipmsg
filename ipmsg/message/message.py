@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import logging
+
 from ipmsg import consts as c
 from ipmsg.config import settings
 from ipmsg.packet import Packet
@@ -8,11 +10,13 @@ from ipmsg.crypto import cry
 from ipmsg import util
 from ipmsg.share import upload_manager, webshare_manager
 from ipmsg.status import status
-from ipmsg.history import Logger
+from ipmsg.history import Logger as MessageLogger
 
 from engine import engine
 
-message_logger = Logger(settings['log_file_path'])
+message_logger = MessageLogger(settings['log_file_path'])
+
+logger = logging.getLogger(__file__)
 
 """
     Message class.
@@ -58,6 +62,7 @@ class Message:
  
         if self.options['encrypt']:
             self.status = Message.NEED_RSAKEY
+        logger.debug('get_contact')
         self.contact = engine.get_contact(self.addr)
         self.try_make_packet()
 
@@ -67,6 +72,7 @@ class Message:
         return self
 
     def try_make_packet(self):
+        logger.debug('try_make_packet')
         tag = 0
         tag |= c.IPMSG_SENDMSG
         tag |= c.IPMSG_SENDCHECKOPT
@@ -106,8 +112,10 @@ class Message:
         if self.options['encrypt']:
             rslt = self.encrypt(msg, contact)
             if not rslt:
+                logger.debug('encrypt failed')
                 return
             else:
+                logger.debug('encrypt success')
                 is_enc, msg = rslt
                 if is_enc:
                     tag |= c.IPMSG_ENCRYPTOPT
@@ -116,6 +124,7 @@ class Message:
             tag |= c.IPMSG_FILEATTACHOPT
             msg += '\x00' + encode_func(upload_manager.append_files(self.addr, self.atts))
 
+        logger.debug('ready to make msg')
         raw = engine.make_msg(self.addr, tag, msg)
         self.packet = Packet.parse(raw, self.addr) 
         self.status = Message.INIT
@@ -123,24 +132,31 @@ class Message:
         self.write_log()
 
     def encrypt(self, msg, contact=None):
+        logger.debug('ready to encrypt')
         if not contact or not cry.knows(self.addr):
             self.status = Message.NEED_RSAKEY
             # no knowledge about this contact, ask for capa and key
+            logger.debug('unknown contact')
             return None
         elif not contact.encrypt_opt or not cry.understands(self.addr):
             self.status = Message.INIT
+            logger.debug('contact does not support the encryption method')
             return False, self.msg
 
+        logger.debug('before calling encryption')
         rslt, enc_msg = cry.encrypt(msg, self.addr)
         if rslt:
+            logger.debug('encryption success')
             self.status = Message.INIT
             return True, enc_msg
         else:
+            logger.debug('encryption error')
             self.status = Message.ENCRYPT_ERROR
             return None
 
     @classmethod
     def parse_incoming(cls, packet, contact):
+        logger.debug('try parse incoming')
         self = cls()
         self.io = 1
         self.timestamp   = packet.timestamp

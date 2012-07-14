@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 import socket, select
-import sys, os, os.path, time, re, logging
+import sys, os, time, re
+import logging
+import traceback
+from functools import wraps
 
 from engine import engine
 
@@ -16,7 +19,7 @@ from ipmsg.util import shex
 from ipmsg.status import status
 from message import Message
 
-logger = logging.getLogger('MessageHandler')
+logger = logging.getLogger(__file__)
 
 class MessageHandler:
     def __init__(self):
@@ -53,8 +56,11 @@ class MessageHandler:
         }
 
     def send(self, addrs, msg, atts=[], **options):
+        logger.debug('ready to send' + msg + repr(addrs))
         for addr in addrs:
+            logger.debug(repr(addr))
             m = Message.make_outcoming(addr, msg, atts, **options)
+            logger.debug(str(m.status))
             self.messages.append(m)
             if m.is_ready():
                 logger.debug('pack ok, sending')
@@ -101,7 +107,15 @@ class MessageHandler:
 
         contact = engine.get_or_create_contact(p)
         for x in filter(p.is_type, self.command.keys()):
-            self.command[x](p, contact)
+            def trace(f):
+                @wraps(f)
+                def inner(*args, **kws):
+                    logger.debug('processing: %s' % (f.__name__))
+                    f(*args, **kws)
+                    logger.debug('processed: %s' % (f.__name__))
+                return inner
+            func = trace(self.command[x])
+            func(p, contact)
 
     def rsps_entry(self, p, contact):
         if not status.is_invisible() and not status.is_off() and contact.addr[0] not in engine.block_ips:
@@ -172,16 +186,20 @@ class MessageHandler:
         addr = contact.addr
         self.received(addr, p.cntr)
         if p.cntr <= contact.max_cntr:
+            logger.debug('old message: %s <= %s' % (p.cntr, contact.max_cntr))
             return
         contact.max_cntr = p.cntr
 
         if self.find_message(p):
+            logger.debug('already parsed')
             return
 
         msg = Message.parse_incoming(p, contact)
+        logger.debug('msg ready')
         self.messages.append(msg)
         msg.write_log()
         if msg.is_decrypt_error():
+            logger.debug('decryption error')
             self.received(addr, p.cntr)
             self.send([addr], c.DECRYPT_ERRMSG)
             return
@@ -205,6 +223,7 @@ class MessageHandler:
     def rsps_anspubkey(self, p, contact):
         addr = contact.addr
         enc_capa, key = re.split(':', p.msg, 1)
+        logger.debug('anspubkey: %s, %s, %s' % (repr(addr), enc_capa, key))
         cry.memo(addr, enc_capa, key)
         for msg in self.messages:
             if msg.io == 0 and msg.is_need_rsakey():

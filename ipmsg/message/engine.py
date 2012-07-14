@@ -8,7 +8,7 @@ from ipmsg import util
 from ipmsg.config import settings
 from ipmsg.message.server import Server
 
-logger = logging.getLogger('Engine')
+logger = logging.getLogger(__file__)
 
 class NetworkError(Exception):
     pass
@@ -159,10 +159,13 @@ class Engine:
                 else:
                     extra = "%s\0" % util.utf8_to_sjis(gname)
         raw = self.make_raw(tag, msg)
+        logger.debug('make msg:' + raw)
         return raw + extra
 
     def send_packet(self, packet):
+        logger.debug('send packet: %s' % (repr(packet)))
         self.server.send_reserve(packet, packet.addr)
+        logger.debug('sent packet')
 
     def send(self, addr, tag = 0, msg = ''):
         raw = self.make_msg(addr, tag, msg)

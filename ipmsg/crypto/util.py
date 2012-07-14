@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from M2Crypto import Rand
+from rsa.randnum import read_random_bits
 
-rand_bytes = Rand.rand_bytes
+def rand_bytes(nbytes):
+    return read_random_bits(nbytes * 8)

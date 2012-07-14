@@ -6,6 +6,9 @@ import ipmsg.consts as c
 from ipmsg.config import settings
 from ipmsg.packet import Packet
 
+import logging, traceback
+logger = logging.getLogger(__file__)
+
 class NetworkError(Exception):
     pass
 
@@ -66,12 +69,15 @@ class Server:
     #@require_serving
     def send_reserve(self, packet, addr):
         if (packet, addr) in self.waiting:
+            logger.debug('already in queue')
             return
 
         if packet.has_check_option():
             self.waiting.add((packet, addr))
+            logger.debug('added to waiting queue')
         else:
             self.sending.add((packet, addr))
+            logger.debug('added to sending queue')
         return True
 
     def check_waiting(self, packet, addr, type):
@@ -92,6 +98,7 @@ class Server:
             try:
                 p = Packet.parse(data, (ip, port))
             except:
+                logger.debug(traceback.format_exc())
                 pass
             else:
                 self.dispatch_cb(p)
@@ -100,6 +107,10 @@ class Server:
             new_paused = set([(p, addr) for (p, addr) in self.waiting if p.age() > settings['send_timeout']])
             self.paused |= new_paused
             self.waiting = set(args for args in self.waiting if args not in self.paused)
+            if self.paused:
+                logger.debug('paused: ' + repr(self.paused))
+            if self.waiting:
+                logger.debug('waiting: ' + repr(self.waiting))
 
             for (p, addr) in [args for args in self.waiting if args not in self.paused]:
                 self.sock.sendto(p.raw, addr)

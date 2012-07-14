@@ -11,7 +11,7 @@ Requirements
 Dependencies
 ============
  * PyCrypto
- * M2Crypto(will be removed in the future)
+ * rsa
 
 Status
 ======
@@ -23,13 +23,4 @@ Installation
 To install::
 
     sudo python setup.py install
-
-
-Known issues
-============
-The M2Crypto package on Pypi seems not working properly.
-If you encounterd errors while installing M2Crypto using easy_install,
-try download the package and manually install it instead.
-Besides, it requires SWIG and OpenSSL being installed.
-Hopefully the dependency to M2Crypto will be removed in the next version.
 
