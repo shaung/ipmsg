@@ -13,7 +13,8 @@ class Cipher:
         self.algo = Cipher.algos[name]
         self.size = size
         self.session_key = session_key or util.rand_bytes(self.size/8)
-        self.key = self.algo.new(key=self.session_key, mode=self.algo.MODE_CBC)
+        iv = '\0' * 8
+        self.key = self.algo.new(key=self.session_key, mode=self.algo.MODE_CBC, IV=iv)
 
     def encrypt(self, plain):
         msg = plain
