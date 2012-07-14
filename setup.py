@@ -1,18 +1,18 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# coding: utf-8
 
-import os.path, glob
+import os
 
-from setuptools import setup
+from distutils.core import setup
 
-__VERSION__ = '0.0.1.0'
+__VERSION__ = '0.1.0'
 
 params = {
     'name': 'ipmsg',
     'version': __VERSION__,
-    'description': 'An ipmsg alternative for linux, written in python',
-    'author': 'Shaung',
-    'author_email': 'shaun.geng@gmail.com',
+    'description': 'IP Messenger for linux',
+    'author': 'shaung',
+    'author_email': '_@shaung.org',
     'url': 'http://github.com/shaung/ipmsg/',
     'packages':[
         'ipmsg',
