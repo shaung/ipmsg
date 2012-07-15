@@ -1,7 +1,8 @@
 About
 =====
-An IP Messenger(http://www.ipmsg.org) alternative for Linux, written in python.
+An IP Messenger(http://www.ipmsg.org) library for Linux, written in python.
 
+For the GUI frontend, checkout https://github.com/shaung/ipmsg-pygtk
 
 Requirements
 ============
@@ -20,7 +21,12 @@ Not compatible with IP Messager 3.x yet.
 
 Installation
 ============
-To install::
 
-    sudo python setup.py install
+From pypi::
+
+    pip install ipmsg
+    
+Or install from source::
+
+    python setup.py install
 
