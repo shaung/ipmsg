@@ -7,6 +7,7 @@ from _rsa import RSAKey
 from cipher import Cipher
 from ipmsg import consts as c
 from ipmsg.util import shex
+from ipmsg import locations
 
 logger = logging.getLogger(__file__)
 
@@ -186,7 +187,7 @@ class Crypto:
     def _init_rsa_key(self):
         self.encrypt_capa = c.IPMSG_RSA_512 | c.IPMSG_RSA_1024 | c.IPMSG_BLOWFISH_128
         # FIXME: hard-coding path
-        self.key_file = lambda x : os.path.expanduser('~/.ipmsg/rsa/rsa.%s.pem' % str(x))
+        self.key_file = lambda size : os.path.join(locations.rsadir, 'rsa.%s.pem' % str(size))
         self._load_key()
 
     def _load_key(self):

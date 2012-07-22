@@ -2,6 +2,7 @@
 
 import os, os.path, json
 from ConfigParser import SafeConfigParser
+import locations
 
 categories = ['common', 'log', 'other', ]
 
@@ -112,7 +113,7 @@ class Settings:
                 ('log_use_utf8', True),
                 ('log_logon_name', True),
                 ('log_ip_address', True),
-                ('log_file_path', os.path.expanduser('~/.ipmsg/ipmsg.log')),
+                ('log_file_path', locations.log_file_path),
             ],
             'message': [
                 ('send_timeout', 10),

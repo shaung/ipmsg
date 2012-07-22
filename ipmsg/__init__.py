@@ -1,17 +1,8 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['config', 'consts', 'crypto', 'engine', 'message', 'history', 'contact', 'packet', 'share', 'status', 'util', ]
+__all__ = ['config', 'consts', 'crypto', 'engine', 'message', 'history', 'contact', 'packet', 'share', 'status', 'util', 'locations']
 
-import os
-
-basedir = os.path.expanduser('~/.ipmsg/')
-for path in ('', 'rsa', 'webshare'):
-    try:
-        os.makedirs(os.path.join(basedir, path))
-    except:
-        pass
-
-
+import locations
 import util
 from util import AttachmentError
 import consts as c
