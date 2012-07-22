@@ -8,6 +8,7 @@ import os
 def main(args=sys.argv[1:]):
     import ipmsg
     from ipmsg.config import settings
+    import ipmsg.consts as c
     from optparse import OptionParser
 
     usage = '%prog [options] message ip[:port]'
