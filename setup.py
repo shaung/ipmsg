@@ -3,7 +3,7 @@
 
 import os
 
-from distutils.core import setup
+from setuptools import setup
 
 __VERSION__ = '0.1.0'
 
@@ -29,6 +29,11 @@ params = {
         "License :: OSI Approved :: BSD License",
     ],
     'install_requires': [line for line in open('requirements.txt')],
+    'entry_points': {
+        'console_scripts': [
+            'ipmsg=ipmsg.cmdline:main'
+        ],
+    }
 }
 
 setup(**params)
