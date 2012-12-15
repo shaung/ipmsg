@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import socket, re, sys, os, os.path
-import time, mmap, io
+import socket, os, time
 import SocketServer, SimpleHTTPServer
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 
 from ipmsg.message import engine
 from ipmsg.util import *
@@ -13,19 +12,18 @@ class WebShareServer:
         self.shares= {}
         self.path = path or '/tmp/ipmsg/webshare'
 
-    def _gen_webshare(self, attach):
+    def _gen_webshare(self, attachments):
         root = os.path.join(self.path, str(time.time()))
         os.makedirs(root)
         page = os.path.join(root, 'index.html')
-        f = file(page, 'wb')
-        f.write('-------- shared files --------\n')
-        f.write('<br>' * 3)
-        for att in attach:
-            fname = os.path.basename(att)
-            ln = os.path.join(root, fname)
-            os.symlink(att, ln)
-            f.write('<a href="%s">%s</a><br>\n' % (fname, fname))
-        f.close()
+        with open(page, 'wb') as f:
+            f.write('-------- shared files --------\n')
+            f.write('<br>' * 3)
+            for att in attachments:
+                fname = os.path.basename(att)
+                ln = os.path.join(root, fname)
+                os.symlink(att, ln)
+                f.write('<a href="%s">%s</a><br>\n' % (fname, fname))
         return root
 
     def prepare(self, attachments):
@@ -37,28 +35,30 @@ class WebShareServer:
 
     def start(self, attachments):
         sid, root = self.prepare(attachments)
-        pshare = Process(target=self._start, args=(sid, root))
+        pshare = Process(target=self._serve, args=(sid, root))
         pshare.daemon = True
         pshare.start()
 
         return self.get_url(sid)
 
-    def _start(self, sid, root):
-        if not self.shares.has_key(sid):
+    def _serve(self, sid, root):
+        httpd = self.shares.get(sid)
+        if not httpd:
             return False
 
         os.chdir(root)
-        self.shares[sid].serve_forever()
+        httpd.serve_forever()
 
     def shutdown(self, sid):
-        if not self.shares.has_key(sid):
+        httpd = self.shares.get(sid)
+        if not httpd:
             return False
 
-        self.shares[sid].shutdown()
+        httpd.shutdown()
 
     def get_url(self, sid):
-        if not self.shares.has_key(sid):
-            return ''
+        httpd = self.shares.get(sid)
+        if not httpd:
+            return False
 
-        return 'http://%s:%s' % (engine.host, self.shares[sid].server_address[1])
-
+        return 'http://%s:%s' % (engine.host, httpd.server_address[1])
