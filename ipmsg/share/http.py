@@ -12,19 +12,18 @@ class WebShareServer:
         self.shares= {}
         self.path = path or '/tmp/ipmsg/webshare'
 
-    def _gen_webshare(self, attach):
+    def _gen_webshare(self, attachments):
         root = os.path.join(self.path, str(time.time()))
         os.makedirs(root)
         page = os.path.join(root, 'index.html')
-        f = file(page, 'wb')
-        f.write('-------- shared files --------\n')
-        f.write('<br>' * 3)
-        for att in attach:
-            fname = os.path.basename(att)
-            ln = os.path.join(root, fname)
-            os.symlink(att, ln)
-            f.write('<a href="%s">%s</a><br>\n' % (fname, fname))
-        f.close()
+        with open(page, 'wb') as f:
+            f.write('-------- shared files --------\n')
+            f.write('<br>' * 3)
+            for att in attachments:
+                fname = os.path.basename(att)
+                ln = os.path.join(root, fname)
+                os.symlink(att, ln)
+                f.write('<a href="%s">%s</a><br>\n' % (fname, fname))
         return root
 
     def prepare(self, attachments):
