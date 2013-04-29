@@ -29,7 +29,8 @@ Or install from source:
 
 ### Command-line usage
 
-    ipmsg [--port=<port>] [--user=<username>] [--group=<groupname>] [-s|--seal] [--help] ip[:port]
+    ipmsg [--port=<port>] [--user=<username>] [--group=<groupname>] [-s|--seal] [--help]
+          <message-to-send> ip[:port]
 
 
 ### License
